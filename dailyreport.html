@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQRA Admin Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; padding: 10px; }
+        .header { background: #1b5e20; color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
+        .stats-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .stat-card { flex: 1; background: white; padding: 12px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-bottom: 4px solid #1b5e20; }
+        .stat-card b { font-size: 22px; color: #1b5e20; display: block; }
+        .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        select, input { flex: 1; min-width: 100px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+        .list-card { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .st-img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid #1b5e20; margin-right: 12px; background: #eee; }
+        .info { flex-grow: 1; }
+        .info b { font-size: 15px; color: #333; }
+        .info p { font-size: 11px; color: #666; margin: 2px 0; }
+        .badge { padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold; }
+        .in { background: #dcfce7; color: #166534; }
+        .out { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin:0">IQRA ADMIN PANEL</h2>
+    </div>
+
+    <div class="stats-box">
+        <div class="stat-card">
+            <span style="font-size: 12px; color: #666;">Total Students</span>
+            <b id="totalPresent">0</b>
+        </div>
+        <div class="stat-card">
+            <span style="font-size: 12px; color: #666;">Currently IN</span>
+            <b id="currentIn">0</b>
+        </div>
+    </div>
+
+    <div class="controls">
+        <select id="cid" onchange="loadData()">
+            <option value="">-- Class --</option>
+            <option value="1">Class 1</option><option value="2">Class 2</option>
+            <option value="3">Class 3</option><option value="4">Class 4</option>
+            <option value="5">Class 5</option><option value="6">Class 6</option>
+            <option value="7">Class 7</option><option value="8">Class 8</option>
+            <option value="9">Class 9</option><option value="10">Class 10</option>
+            <option value="11">Teachers</option>
+        </select>
+        <input type="date" id="attDate" onchange="loadData()">
+        <input type="text" id="srch" placeholder="Search..." onkeyup="search()">
+    </div>
+
+    <div id="mainList"></div>
+
+<script>
+    // === YAHAN APNA SCRIPT URL DALEIN ===
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzpEpOnpXrFkouGcnmIHa032feqrtZUN891mAnrFBWtIN4YmZG2_U575DTTwW-2Bp81/exec";
+
+    window.onload = () => {
+        // Default Aaj ki date set karein
+        document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+    };
+
+    async function loadData() {
+        let c = document.getElementById('cid').value;
+        let d = document.getElementById('attDate').value;
+        if(!c) return;
+        
+        const list = document.getElementById('mainList');
+        list.innerHTML = "<p style='text-align:center'>Loading Records...</p>";
+
+        try {
+            const res = await fetch(`${SCRIPT_URL}?getAttendance=true&classId=${c}&name=all&date=${d}`);
+            const data = await res.json();
+            
+            // Statistics Update Logic
+            // 1. Total Students: Unique names count
+            let uniqueNames = [...new Set(data.map(item => item[0]))];
+            document.getElementById('totalPresent').innerText = uniqueNames.length;
+            
+            // 2. Currently IN: Status 'IN' count
+            let inCount = data.filter(item => item[5] === 'IN').length;
+            document.getElementById('currentIn').innerText = inCount;
+
+            list.innerHTML = "";
+            if(data.length === 0) {
+                list.innerHTML = `<p style='text-align:center; color:red; padding:20px;'>No records found for Class ${c} on ${d}</p>`;
+                return;
+            }
+
+            data.forEach(row => {
+                // Photo Rendering: 
+                // Agar row[6] mein ID hai (naya data), toh photo dikhegi.
+                // Agar khali hai (purana data), toh placeholder icon dikhega.
+                let photoUrl = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                if(row[6] && row[6] !== "" && row[6] !== "No Photo") {
+                    photoUrl = "https://lh3.googleusercontent.com/d/" + row[6];
+                }
+
+                list.innerHTML += `
+                    <div class="list-card">
+                        <img src="${photoUrl}" class="st-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                        <div class="info">
+                            <b>${row[0]}</b>
+                            <p><b>IN:</b> ${row[1]}</p>
+                            <p><b>OUT:</b> ${row[2] === 'Inside' ? 'Still Inside' : row[2]}</p>
+                        </div>
+                        <span class="badge ${row[5]=='IN'?'in':'out'}">${row[5]}</span>
+                    </div>
+                `;
+            });
+        } catch(e) { 
+            list.innerHTML = "<p style='text-align:center; color:red;'>Data load nahi ho saka.</p>"; 
+        }
+    }
+
+    function search() {
+        let v = document.getElementById('srch').value.toLowerCase();
+        let cards = document.getElementsByClassName('list-card');
+        for(let c of cards) {
+            c.style.display = c.innerText.toLowerCase().includes(v) ? "flex" : "none";
+        }
+    }
+</script>
+</body>
+</html>
