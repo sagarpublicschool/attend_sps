@@ -2,68 +2,76 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IQRA PUBLIC SCHOOL Attendance</title>
+    <title>Sagar Public School Attendance</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0fdf4; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .card { background: white; width: 100%; max-width: 360px; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid #2e7d32; }
+        
+        /* Shuruat mein UI chhupa rahega */
+        #main-ui { display: none; }
+        #loader { padding: 40px 10px; }
+        
         h2 { color: #2e7d32; margin: 5px 0; font-size: 20px; text-transform: uppercase; }
         .sub-header { color: #444; font-size: 14px; font-weight: bold; margin-bottom: 5px; }
         #clock { font-size: 50px; font-weight: bold; color: #ff5722; margin: 0; font-family: sans-serif; letter-spacing: 2px; }
         #date { font-size: 18px; color: #777; margin-bottom: 15px; font-weight: 400; }
-        
         select { width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 16px; font-weight: bold; border: 2px solid #2e7d32; background: #fff; }
         .cam-box { width: 100%; border-radius: 10px; overflow: hidden; border: 2px solid #ccc; aspect-ratio: 4/3; margin-bottom: 10px; background: #000; position: relative; }
         video, img { width: 100%; height: 100%; object-fit: cover; }
-        
         button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; color: white; margin-bottom: 8px; cursor: pointer; }
         .b-snap { background: #673ab7; } .b-in { background: #4CAF50; } .b-out { background: #f44336; }
         .b-reset { background: #555; font-size: 12px; padding: 8px; margin-bottom: 10px; width: auto; min-width: 150px; }
-        
         #status { font-weight: bold; margin: 10px 0; min-height: 25px; transition: 0.3s; }
         .success-msg { color: #2e7d32; font-size: 18px; display: block; padding: 10px; border-radius: 8px; background: #e8f5e9; border: 2px solid #4caf50; }
-        
         .footer { font-size: 11px; color: #777; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>SAGAR PUBLIC SCHOOL</h2>
-    <div class="sub-header">Students Attendance System</div>
-    
-    <div id="clock">00:00:00</div>
-    <div id="date">Loading...</div>
-    
-    <select id="classList" onchange="saveClassAndLoad()">
-        <option value="">-- SELECT CLASS --</option>
-        <option value="1">Class 1</option><option value="2">Class 2</option>
-        <option value="3">Class 3</option><option value="4">Class 4</option>
-        <option value="5">Class 5</option><option value="6">Class 6</option>
-        <option value="7">Class 7</option><option value="8">Class 8</option>
-        <option value="9">Class 9</option><option value="10">Class 10</option>
-        <option value="11">Teachers</option>
-    </select>
-
-    <select id="sList"><option value="">-- SELECT  --</option></select>
-
-    <button class="b-reset" onclick="startCam()">🔄 Reset Camera if Black</button>
-
-    <div class="cam-box">
-        <video id="v" autoplay playsinline muted></video>
-        <img id="p" style="display:none;">
-    </div>
-    
-    <div id="ctrls">
-        <button class="b-snap" id="snBtn" onclick="snap()">📸 TAKE PHOTO</button>
-        <button class="b-in" onclick="send('check-in')">SCHOOL-IN</button>
-        <button class="b-out" onclick="send('check-out')">SCHOOL-OUT</button>
+    <div id="loader">
+        <h3>Verifying Location... 📍</h3>
+        <p>Please wait, checking school range.</p>
     </div>
 
-    <div id="status">Ready</div>
+    <div id="main-ui">
+        <h2>SAGAR PUBLIC SCHOOL</h2>
+        <div class="sub-header">Students Attendance System</div>
+        
+        <div id="clock">00:00:00</div>
+        <div id="date">Loading...</div>
+        
+        <select id="classList" onchange="saveClassAndLoad()">
+            <option value="">-- SELECT CLASS --</option>
+            <option value="1">Class 1</option><option value="2">Class 2</option>
+            <option value="3">Class 3</option><option value="4">Class 4</option>
+            <option value="5">Class 5</option><option value="6">Class 6</option>
+            <option value="7">Class 7</option><option value="8">Class 8</option>
+            <option value="9">Class 9</option><option value="10">Class 10</option>
+            <option value="11">Teachers</option>
+        </select>
 
-    <div class="footer">
-        Location and camera permissions required.<br>
-        <b>Created by Riyaz Ahmad, PGT Zoology</b>
+        <select id="sList"><option value="">-- SELECT --</option></select>
+
+        <button class="b-reset" onclick="startCam()">🔄 Reset Camera</button>
+
+        <div class="cam-box">
+            <video id="v" autoplay playsinline muted></video>
+            <img id="p" style="display:none;">
+        </div>
+        
+        <div id="ctrls">
+            <button class="b-snap" id="snBtn" onclick="snap()">📸 TAKE PHOTO</button>
+            <button class="b-in" onclick="send('check-in')">SCHOOL-IN</button>
+            <button class="b-out" onclick="send('check-out')">SCHOOL-OUT</button>
+        </div>
+
+        <div id="status">Ready</div>
+
+        <div class="footer">
+            Location and camera permissions required.<br>
+            <b>Created by Riyaz Ahmad, PGT Zoology</b>
+        </div>
     </div>
 </div>
 
@@ -72,73 +80,61 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzpEpOnpXrFkouGcnmIHa032feqrtZUN891mAnrFBWtIN4YmZG2_U575DTTwW-2Bp81/exec"; 
     
-    // --- SCHOOL SETTINGS ---
-    const SCHOOL_LAT = 25.54493833; // Yahan apna Lat daalein
-    const SCHOOL_LON = 88.0221583333333; // Yahan apna Lon daalein
-    const MAX_DISTANCE_KM = 0.5; 
-    // -----------------------
+    // --- SCHOOL COORDINATES (Important) ---
+    const SCHOOL_LAT = 25.54493833; // APNA LATITUDE DALO
+    const SCHOOL_LON = 88.02215833; // APNA LONGITUDE DALO
+    const MAX_DIST = 0.5; // 500 Meters
+    // --------------------------------------
 
-    let v, b64 = "", streamRef = null;
+    let v = document.getElementById('v'), b64 = "", streamRef = null;
 
-    // Haversine Formula for distance
     function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        const R = 6371; 
+        const dLat = (lat2-lat1) * Math.PI/180;
+        const dLon = (lon2-lon1) * Math.PI/180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
     }
 
     window.onload = () => {
-        const card = document.querySelector('.card');
-        const originalHTML = card.innerHTML; // Save UI
-        card.innerHTML = "<div style='padding:20px;'><h3>Verifying Location... 📍</h3><p>Please wait while we check if you are in school campus.</p></div>";
-
         if (!navigator.geolocation) {
-            card.innerHTML = "<h2>Error</h2><p>Browser doesn't support GPS.</p>";
+            document.getElementById('loader').innerHTML = "<h2>Error</h2><p>GPS not supported.</p>";
             return;
         }
 
         navigator.geolocation.getCurrentPosition(pos => {
-            const dist = getDistance(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LON);
-
-            if (dist <= MAX_DISTANCE_KM) {
-                card.innerHTML = originalHTML; // Restore UI
+            const d = getDistance(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LON);
+            
+            if (d <= MAX_DIST) {
+                // Range mein hai! Loader hatao aur UI dikhao
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'block';
                 
-                // --- Re-attach elements and Start Camera ---
-                v = document.getElementById('v'); 
-                setTimeout(() => {
-                    startCam();   // Thoda delay taaki video element render ho jaye
-                    setupClock(); // Ghadi chalu karein
-                    loadSavedClass(); // Purani class load karein
-                }, 500);
-
+                // Ab camera aur baaki cheezein start karein
+                startCam();
+                startClock();
+                const saved = localStorage.getItem('lastClass');
+                if(saved) { document.getElementById('classList').value = saved; loadStudents(); }
             } else {
-                card.innerHTML = `<h2 style='color:red;'>ACCESS DENIED</h2>
-                                 <p>Aap school range se bahar hain.</p>
-                                 <p>Current Distance: <b>${dist.toFixed(2)} km</b></p>
-                                 <button onclick="location.reload()" style="background:#2e7d32; padding:10px; color:#fff; border-radius:5px;">Retry</button>`;
+                // Range se bahar
+                document.getElementById('loader').innerHTML = `<h2 style='color:red;'>ACCESS DENIED</h2>
+                    <p>Aap school se <b>${d.toFixed(2)} km</b> door hain.</p>
+                    <button onclick="location.reload()" style="background:#222; padding:10px; color:#fff; border:none; border-radius:5px;">Retry</button>`;
             }
         }, (err) => {
-            card.innerHTML = "<h2>Permission Required</h2><p>GPS permission ke bina attendance nahi khulegi.</p><button onclick='location.reload()'>Retry</button>";
+            document.getElementById('loader').innerHTML = "<h2>Permission Denied</h2><p>Please allow location access.</p>";
         }, { enableHighAccuracy: true });
     };
 
-    function setupClock() {
-        setInterval(() => { 
-            const n = new Date();
-            const cEl = document.getElementById('clock');
-            const dEl = document.getElementById('date');
-            if(cEl) cEl.innerText = n.toLocaleTimeString('en-GB'); 
-            if(dEl) dEl.innerText = n.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    function startClock() {
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB');
+            document.getElementById('date').innerText = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }, 1000);
     }
 
     async function startCam() {
-        v = document.getElementById('v'); // Re-check element
         if (streamRef) { streamRef.getTracks().forEach(t => t.stop()); }
         try {
             streamRef = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 480 } });
@@ -146,17 +142,7 @@
             v.play();
             document.getElementById('status').innerText = "Camera Ready ✅";
         } catch (e) { 
-            console.error(e);
-            document.getElementById('status').innerText = "Camera Error! Please refresh."; 
-        }
-    }
-
-    // Baaki function (loadStudents, snap, send, resetUI) wahi rahenge jo pehle the...
-    function loadSavedClass() {
-        const saved = localStorage.getItem('lastClass');
-        if(saved) { 
-            document.getElementById('classList').value = saved; 
-            loadStudents(); 
+            document.getElementById('status').innerText = "Camera Error! Close other apps."; 
         }
     }
 
@@ -171,12 +157,10 @@
         let sl = document.getElementById('sList');
         if(!cid) return;
         sl.innerHTML = "<option>Loading...</option>";
-        fetch(SCRIPT_URL + "?classId=" + cid)
-            .then(r => r.json())
-            .then(data => {
-                sl.innerHTML = "<option value=''>-- SELECT STUDENT --</option>";
-                data.forEach(n => sl.innerHTML += `<option value="${n}">${n}</option>`);
-            });
+        fetch(SCRIPT_URL + "?classId=" + cid).then(r => r.json()).then(data => {
+            sl.innerHTML = "<option value=''>-- SELECT STUDENT --</option>";
+            data.forEach(n => sl.innerHTML += `<option value="${n}">${n}</option>`);
+        });
     }
 
     function snap() {
@@ -195,29 +179,22 @@
         const name = document.getElementById('sList').value;
         if(!cid || !name) return alert("Select Class and Student!");
         if(t === 'check-in' && !b64) return alert("Take Photo First!");
-
+        
+        document.getElementById('status').innerHTML = `<span class="success-msg">✅ Done. ${name}</span>`;
+        
         navigator.geolocation.getCurrentPosition(pos => {
-            const payload = {
-                classId: cid, name: name, type: t, 
-                location: pos.coords.latitude + "," + pos.coords.longitude, 
-                photo: b64
-            };
-            document.getElementById('status').innerHTML = `<span class="success-msg">✅ Done. ${name}</span>`;
+            const payload = { classId: cid, name: name, type: t, location: pos.coords.latitude + "," + pos.coords.longitude, photo: b64 };
             fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             setTimeout(() => { resetUI(true); }, 3000);
         });
     }
 
     function resetUI(clearMsg) {
-        b64 = ""; 
-        document.getElementById('p').style.display = "none"; 
-        v.style.display = "block";
+        b64 = ""; document.getElementById('p').style.display = "none"; v.style.display = "block";
         document.getElementById('snBtn').innerText = "📸 TAKE PHOTO";
         document.getElementById('sList').value = "";
         if(clearMsg) document.getElementById('status').innerText = "Ready";
     }
 </script>
-
-
 </body>
 </html>
