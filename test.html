@@ -72,34 +72,33 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzpEpOnpXrFkouGcnmIHa032feqrtZUN891mAnrFBWtIN4YmZG2_U575DTTwW-2Bp81/exec"; 
     
-    // --- SCHOOL SETTINGS (Inhe apne hisab se badlein) ---
-    const SCHOOL_LAT = 25.54493833; 
-    const SCHOOL_LON = 88.0221583333333; 
-    const MAX_DISTANCE_KM = 0.5; // 500 Meters
-    // --------------------------------------------------
+    // --- SCHOOL SETTINGS ---
+    const SCHOOL_LAT = 25.54493833; // Yahan apna Lat daalein
+    const SCHOOL_LON = 88.0221583333333; // Yahan apna Lon daalein
+    const MAX_DISTANCE_KM = 0.5; 
+    // -----------------------
 
-    let v = document.getElementById('v'), b64 = "", streamRef = null;
+    let v, b64 = "", streamRef = null;
 
-    // Distance calculate karne ka function
+    // Haversine Formula for distance
     function getDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; 
+        const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                   Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; 
+        return R * c;
     }
 
-    // Page load hote hi check karega
     window.onload = () => {
         const card = document.querySelector('.card');
-        const originalContent = card.innerHTML;
-        card.innerHTML = "<h3>Verifying your location... Please wait.</h3>";
+        const originalHTML = card.innerHTML; // Save UI
+        card.innerHTML = "<div style='padding:20px;'><h3>Verifying Location... 📍</h3><p>Please wait while we check if you are in school campus.</p></div>";
 
         if (!navigator.geolocation) {
-            card.innerHTML = "<h2 style='color:red;'>Error!</h2><p>Your browser does not support Location.</p>";
+            card.innerHTML = "<h2>Error</h2><p>Browser doesn't support GPS.</p>";
             return;
         }
 
@@ -107,50 +106,58 @@
             const dist = getDistance(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LON);
 
             if (dist <= MAX_DISTANCE_KM) {
-                // Agar range mein hai to attendance system dikhao
-                card.innerHTML = originalContent;
-                // Saare elements load hone ke baad camera aur baaki functions start karo
+                card.innerHTML = originalHTML; // Restore UI
+                
+                // --- Re-attach elements and Start Camera ---
                 v = document.getElementById('v'); 
-                startCam();
-                setupClock();
-                const saved = localStorage.getItem('lastClass');
-                if(saved) { 
-                    document.getElementById('classList').value = saved; 
-                    loadStudents(); 
-                }
+                setTimeout(() => {
+                    startCam();   // Thoda delay taaki video element render ho jaye
+                    setupClock(); // Ghadi chalu karein
+                    loadSavedClass(); // Purani class load karein
+                }, 500);
+
             } else {
-                // Range se bahar hone par
                 card.innerHTML = `<h2 style='color:red;'>ACCESS DENIED</h2>
-                                 <p>Aap school range se bahar hain.<br>
-                                 Current Distance: <b>${dist.toFixed(2)} km</b></p>
-                                 <p>Attendance ke liye school ke 500m ke andar hona zaroori hai.</p>`;
+                                 <p>Aap school range se bahar hain.</p>
+                                 <p>Current Distance: <b>${dist.toFixed(2)} km</b></p>
+                                 <button onclick="location.reload()" style="background:#2e7d32; padding:10px; color:#fff; border-radius:5px;">Retry</button>`;
             }
         }, (err) => {
-            card.innerHTML = "<h2 style='color:red;'>Permission Denied</h2><p>Please enable GPS/Location permission to use this system.</p>";
+            card.innerHTML = "<h2>Permission Required</h2><p>GPS permission ke bina attendance nahi khulegi.</p><button onclick='location.reload()'>Retry</button>";
         }, { enableHighAccuracy: true });
     };
 
     function setupClock() {
         setInterval(() => { 
-            const now = new Date();
-            const clockEl = document.getElementById('clock');
-            const dateEl = document.getElementById('date');
-            if(clockEl) clockEl.innerText = now.toLocaleTimeString('en-GB'); 
-            if(dateEl) {
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                dateEl.innerText = now.toLocaleDateString('en-US', options);
-            }
+            const n = new Date();
+            const cEl = document.getElementById('clock');
+            const dEl = document.getElementById('date');
+            if(cEl) cEl.innerText = n.toLocaleTimeString('en-GB'); 
+            if(dEl) dEl.innerText = n.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }, 1000);
     }
 
     async function startCam() {
+        v = document.getElementById('v'); // Re-check element
         if (streamRef) { streamRef.getTracks().forEach(t => t.stop()); }
         try {
             streamRef = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 480 } });
             v.srcObject = streamRef;
             v.play();
             document.getElementById('status').innerText = "Camera Ready ✅";
-        } catch (e) { document.getElementById('status').innerText = "Camera Error!"; }
+        } catch (e) { 
+            console.error(e);
+            document.getElementById('status').innerText = "Camera Error! Please refresh."; 
+        }
+    }
+
+    // Baaki function (loadStudents, snap, send, resetUI) wahi rahenge jo pehle the...
+    function loadSavedClass() {
+        const saved = localStorage.getItem('lastClass');
+        if(saved) { 
+            document.getElementById('classList').value = saved; 
+            loadStudents(); 
+        }
     }
 
     function saveClassAndLoad() {
@@ -210,6 +217,7 @@
         if(clearMsg) document.getElementById('status').innerText = "Ready";
     }
 </script>
+
 
 </body>
 </html>
