@@ -6,11 +6,8 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0fdf4; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .card { background: white; width: 100%; max-width: 360px; padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid #2e7d32; }
-        
-        /* Shuruat mein UI chhupa rahega */
         #main-ui { display: none; }
         #loader { padding: 40px 10px; }
-        
         h2 { color: #2e7d32; margin: 5px 0; font-size: 20px; text-transform: uppercase; }
         .sub-header { color: #444; font-size: 14px; font-weight: bold; margin-bottom: 5px; }
         #clock { font-size: 50px; font-weight: bold; color: #ff5722; margin: 0; font-family: sans-serif; letter-spacing: 2px; }
@@ -37,7 +34,6 @@
     <div id="main-ui">
         <h2>SAGAR PUBLIC SCHOOL</h2>
         <div class="sub-header">Students Attendance System</div>
-        
         <div id="clock">00:00:00</div>
         <div id="date">Loading...</div>
         
@@ -80,13 +76,12 @@
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzpEpOnpXrFkouGcnmIHa032feqrtZUN891mAnrFBWtIN4YmZG2_U575DTTwW-2Bp81/exec"; 
     
-    // --- SCHOOL COORDINATES (Important) ---
-    const SCHOOL_LAT = 25.54493833; // APNA LATITUDE DALO
-    const SCHOOL_LON = 88.02215833; // APNA LONGITUDE DALO
-    const MAX_DIST = 0.5; // 500 Meters
-    // --------------------------------------
+    // --- SCHOOL COORDINATES ---
+    const SCHOOL_LAT = 25.54493833; 
+    const SCHOOL_LON = 88.02215833; 
+    const MAX_DIST = 0.5; 
 
-    let v = document.getElementById('v'), b64 = "", streamRef = null;
+    let b64 = "", streamRef = null;
 
     function getDistance(lat1, lon1, lat2, lon2) {
         const R = 6371; 
@@ -106,43 +101,47 @@
             const d = getDistance(pos.coords.latitude, pos.coords.longitude, SCHOOL_LAT, SCHOOL_LON);
             
             if (d <= MAX_DIST) {
-                // Range mein hai! Loader hatao aur UI dikhao
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('main-ui').style.display = 'block';
                 
-                // Ab camera aur baaki cheezein start karein
-                startCam();
-                startClock();
-                const saved = localStorage.getItem('lastClass');
-                if(saved) { document.getElementById('classList').value = saved; loadStudents(); }
+                // UI display hone ke baad hi camera ko call karein
+                setTimeout(() => {
+                    startCam();
+                    startClock();
+                    const saved = localStorage.getItem('lastClass');
+                    if(saved) { document.getElementById('classList').value = saved; loadStudents(); }
+                }, 300);
             } else {
-                // Range se bahar
                 document.getElementById('loader').innerHTML = `<h2 style='color:red;'>ACCESS DENIED</h2>
                     <p>Aap school se <b>${d.toFixed(2)} km</b> door hain.</p>
-                    <button onclick="location.reload()" style="background:#222; padding:10px; color:#fff; border:none; border-radius:5px;">Retry</button>`;
+                    <button onclick="location.reload()" style="background:#222; padding:10px; color:#fff; border:none; border-radius:5px; cursor:pointer;">Retry</button>`;
             }
         }, (err) => {
-            document.getElementById('loader').innerHTML = "<h2>Permission Denied</h2><p>Please allow location access.</p>";
+            document.getElementById('loader').innerHTML = "<h2>Permission Denied</h2><p>GPS/Location on karein aur permission allow karein.</p><button onclick='location.reload()'>Try Again</button>";
         }, { enableHighAccuracy: true });
     };
 
     function startClock() {
         setInterval(() => {
             const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB');
-            document.getElementById('date').innerText = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const clk = document.getElementById('clock');
+            const dt = document.getElementById('date');
+            if(clk) clk.innerText = now.toLocaleTimeString('en-GB');
+            if(dt) dt.innerText = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }, 1000);
     }
 
     async function startCam() {
+        const video = document.getElementById('v'); // Yahan capture karein
         if (streamRef) { streamRef.getTracks().forEach(t => t.stop()); }
         try {
             streamRef = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 480 } });
-            v.srcObject = streamRef;
-            v.play();
+            video.srcObject = streamRef;
+            video.play();
             document.getElementById('status').innerText = "Camera Ready ✅";
         } catch (e) { 
-            document.getElementById('status').innerText = "Camera Error! Close other apps."; 
+            console.log(e);
+            document.getElementById('status').innerText = "Camera Error! Close other apps and refresh."; 
         }
     }
 
@@ -164,13 +163,14 @@
     }
 
     function snap() {
+        const video = document.getElementById('v');
         const cn = document.getElementById('c');
         cn.width = 400; cn.height = 300;
-        cn.getContext('2d').drawImage(v, 0, 0, 400, 300);
+        cn.getContext('2d').drawImage(video, 0, 0, 400, 300);
         b64 = cn.toDataURL('image/jpeg', 0.5); 
         document.getElementById('p').src = b64; 
         document.getElementById('p').style.display = "block"; 
-        v.style.display = "none";
+        video.style.display = "none";
         document.getElementById('snBtn').innerText = "🔄 RETAKE PHOTO";
     }
 
@@ -190,7 +190,9 @@
     }
 
     function resetUI(clearMsg) {
-        b64 = ""; document.getElementById('p').style.display = "none"; v.style.display = "block";
+        b64 = ""; 
+        document.getElementById('p').style.display = "none"; 
+        document.getElementById('v').style.display = "block";
         document.getElementById('snBtn').innerText = "📸 TAKE PHOTO";
         document.getElementById('sList').value = "";
         if(clearMsg) document.getElementById('status').innerText = "Ready";
